@@ -2,19 +2,13 @@
 
 A machine learning web app that predicts a student's **math score** based on demographic and academic factors. Built with Flask and deployed on Render.
 
-**Live demo:** [your-app-name.onrender.com](https://your-app-name.onrender.com) *(replace with your Render URL)*
+**Live demo:** [student-performance-indicator-w8hn.onrender.com/predictdata](https://student-performance-indicator-w8hn.onrender.com/predictdata)
 
 ---
 
 ## Overview
 
-This project takes a student's gender, ethnicity, parental education level, lunch type, test preparation status, and their reading/writing scores, and predicts their expected math score out of 100. It demonstrates an end-to-end ML workflow — data ingestion, preprocessing, model training, and deployment as a web service.
-
----
-
-## Problem Statement
-
-Educators and institutions often want to understand how socio-academic factors relate to student performance in mathematics. This project builds a regression model that estimates a student's math score from other available attributes, which can help identify students who might benefit from additional support.
+This project takes a student's gender, ethnicity, parental education level, lunch type, test preparation status, and their reading/writing scores, and predicts their expected math score out of 100. It demonstrates an end-to-end ML workflow — data ingestion, preprocessing, model training, model selection, and deployment as a web service.
 
 ---
 
@@ -22,8 +16,8 @@ Educators and institutions often want to understand how socio-academic factors r
 
 | Layer | Tools |
 |---|---|
-| Language | Python 3.x |
-| ML / Data | scikit-learn, pandas, numpy |
+| Language | Python |
+| ML / Data | scikit-learn, pandas, numpy, catboost, xgboost |
 | Backend | Flask |
 | Server | Gunicorn |
 | Deployment | Render |
@@ -34,34 +28,40 @@ Educators and institutions often want to understand how socio-academic factors r
 ## Project Structure
 
 ```
-student-exam-performance/
-├── app.py                     # Flask application entry point
-├── requirements.txt           # Python dependencies
-├── Procfile                    # Render/Gunicorn start command
-├── setup.py                    # Package configuration
+Student-Performance-Indicator/
+├── app.py                          # Flask application entry point
+├── requirements.txt                # Python dependencies
+├── runtime.txt                     # Python version for Render
+├── render.yaml                     # Render service configuration
+├── setup.py                        # Package configuration
 │
-├── artifacts/
-│   ├── model.pkl                # Trained regression model
-│   ├── preprocessor.pkl         # Fitted preprocessing pipeline
-│   └── data.csv                 # Raw/processed dataset
+├── artifact/
+│   ├── model.pkl                     # Trained regression model
+│   ├── preprocesser.pkl              # Fitted preprocessing pipeline
+│   ├── data.csv                      # Cleaned dataset
+│   ├── train.csv                     # Training split
+│   └── test.csv                      # Test split
 │
 ├── src/
 │   ├── components/
-│   │   ├── data_ingestion.py     # Loads and splits raw data
-│   │   ├── data_transformation.py # Feature encoding & scaling
-│   │   └── model_trainer.py       # Trains and evaluates models
-│   ├── pipeline/
-│   │   ├── train_pipeline.py      # End-to-end training pipeline
-│   │   └── predict_pipeline.py    # Loads artifacts & makes predictions
-│   ├── exception.py               # Custom exception handling
-│   ├── logger.py                  # Logging configuration
-│   └── utils.py                   # Helper functions (save/load objects, etc.)
+│   │   ├── data_ingestion.py          # Loads, splits, and saves data
+│   │   ├── data_transformation.py     # Feature encoding & scaling pipeline
+│   │   └── model_trainer.py           # Trains, evaluates, and selects best model
+│   ├── pipelines/
+│   │   ├── train_pipeline.py          # End-to-end training pipeline
+│   │   └── predict_pipeline.py        # Loads artifacts & makes predictions
+│   ├── exception.py                   # Custom exception handling
+│   ├── logger.py                      # Logging configuration
+│   └── utils.py                       # Helper functions (save/load objects, evaluation)
 │
 ├── templates/
-│   └── home.html               # Prediction form UI
+│   ├── index.html                  # Landing page
+│   └── home.html                   # Prediction form UI
 │
-└── notebooks/
-    └── EDA_and_Model_Training.ipynb  # Exploratory data analysis & experiments
+└── notebook/
+    ├── EDA STUDENT PERFORMANCE.IPYNB   # Exploratory data analysis
+    ├── MODEL_TRAINING.ipynb            # Model training & comparison
+    └── data/stud.csv                   # Raw dataset
 ```
 
 ---
@@ -85,18 +85,27 @@ The model is trained on the **Students Performance in Exams** dataset, containin
 
 ## Machine Learning Pipeline
 
-1. **Data Ingestion** – Reads raw data and splits it into training and test sets.
-2. **Data Transformation** – Applies one-hot encoding to categorical features and standard scaling to numerical features, saved as `preprocessor.pkl`.
-3. **Model Training** – Trains multiple regression algorithms (e.g. Linear Regression, Random Forest, XGBoost, CatBoost) and selects the best performer using R² score, saved as `model.pkl`.
-4. **Prediction Pipeline** – Loads the saved preprocessor and model to transform new input and generate predictions.
+1. **Data Ingestion** – Reads the raw dataset and splits it into training and test sets (`train.csv`, `test.csv`).
+2. **Data Transformation** – Applies median imputation + standard scaling to numerical features and one-hot encoding + scaling to categorical features, saved as `preprocesser.pkl`.
+3. **Model Training & Selection** – Trains multiple regression algorithms and evaluates each on R² score against the test set. The best-performing model is saved as `model.pkl`.
+4. **Prediction Pipeline** – Loads the saved preprocessor and model to transform new form input and generate a math score prediction.
 
-### Model Performance
+### Model Comparison
 
 | Model | R² Score |
 |---|---|
-| _Best model_ | _xx.xx %_ |
+| **Ridge** ✅ (selected) | **0.8759** |
+| Linear Regression | 0.8725 |
+| CatBoosting Regressor | 0.8521 |
+| Random Forest | 0.8473 |
+| AdaBoost | 0.8281 |
+| XGBoost | 0.8118 |
+| Lasso | 0.8103 |
+| KNN | 0.7723 |
+| Support Vector Machine | 0.7268 |
+| Decision Tree | 0.7222 |
 
-*(Fill in with your actual evaluation results)*
+Ridge Regression gave the best generalization performance and was selected as the production model.
 
 ---
 
@@ -104,8 +113,8 @@ The model is trained on the **Students Performance in Exams** dataset, containin
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/student-exam-performance.git
-cd student-exam-performance
+git clone https://github.com/Rajamikrani/Student-Performance-Indicator.git
+cd Student-Performance-Indicator
 ```
 
 ### 2. Create a virtual environment and install dependencies
@@ -139,7 +148,7 @@ Render automatically redeploys on every push to the `main` branch.
 
 ## Usage
 
-1. Open the web app.
+1. Visit the [prediction form](https://student-performance-indicator-w8hn.onrender.com/predictdata).
 2. Fill in the student's details: gender, ethnicity, parental education, lunch type, test preparation status, and reading/writing scores.
 3. Click **Predict math score** to get the estimated math score.
 
@@ -159,4 +168,4 @@ Render automatically redeploys on every push to the `main` branch.
 
 **Raja**
 BCA Student, Tribhuvan University, Kathmandu, Nepal
-[GitHub](https://github.com/your-username) · [LinkedIn](https://linkedin.com/in/your-profile)
+[GitHub](https://github.com/Rajamikrani)
