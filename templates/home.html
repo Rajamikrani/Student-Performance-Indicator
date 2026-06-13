@@ -1,111 +1,445 @@
-<html>
-<body>
-    <div class="login">
-       <h1>Student Exam Performance Indicator</h1>
-   
-       <form action="{{ url_for('predict_datapoint')}}" method="post">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Exam Performance Indicator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=Caveat:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
 
-            <legend>Student Exam Performance Prediction</legend>
+    <style>
+      :root {
+        --paper: #f4efe2;
+        --paper-line: #e3dcc9;
+        --ink: #2c2620;
+        --ink-soft: #6b6354;
+        --chalk: #2f4a3c;
+        --chalk-deep: #20342a;
+        --pencil: #e3a23c;
+        --red-pen: #b6452c;
+        --card: #fffdf7;
+      }
 
-        <div class="mb-3">
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--paper);
+        background-image: repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent 38px,
+          var(--paper-line) 39px
+        );
+        color: var(--ink);
+        font-family: "Space Grotesk", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 20px;
+      }
+
+      .sheet {
+        width: 100%;
+        max-width: 760px;
+        background: var(--card);
+        border: 1px solid var(--paper-line);
+        border-radius: 4px;
+        box-shadow:
+          0 1px 0 rgba(44, 38, 32, 0.04),
+          0 18px 40px -24px rgba(44, 38, 32, 0.35);
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* top binder strip */
+      .sheet::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 10px;
+        background: var(--chalk);
+      }
+
+      .masthead {
+        padding: 38px 44px 26px;
+        border-bottom: 2px dashed var(--paper-line);
+      }
+
+      .masthead .eyebrow {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--chalk);
+        margin: 0 0 10px;
+      }
+
+      .masthead h1 {
+        font-family: "Fraunces", serif;
+        font-weight: 600;
+        font-size: clamp(28px, 5vw, 38px);
+        line-height: 1.15;
+        margin: 0 0 8px;
+        color: var(--ink);
+      }
+
+      .masthead p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 15px;
+        max-width: 480px;
+      }
+
+      form {
+        padding: 30px 44px 40px;
+      }
+
+      .field {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 4px 16px;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--paper-line);
+        align-items: start;
+      }
+      .field:first-of-type {
+        padding-top: 4px;
+      }
+
+      .qnum {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+        color: var(--chalk);
+        border: 1.5px solid var(--chalk);
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 2px;
+      }
+
+      label.form-label {
+        font-weight: 600;
+        font-size: 14.5px;
+        color: var(--ink);
+        margin-bottom: 8px;
+        display: block;
+        grid-column: 2;
+      }
+
+      /* two-column layout for paired questions on wider screens */
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 28px;
+      }
+      .pair .field {
+        border-bottom: none;
+      }
+
+      select.form-control,
+      input.form-control {
+        grid-column: 2;
+        width: 100%;
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 15px;
+        color: var(--ink);
+        background: #fbf9f2;
+        border: 1.5px solid var(--paper-line);
+        border-radius: 6px;
+        padding: 11px 14px;
+        appearance: none;
+        transition:
+          border-color 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+
+      select.form-control {
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'><path d='M1 1l6 6 6-6' stroke='%232c2620' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        padding-right: 38px;
+      }
+
+      select.form-control:focus,
+      input.form-control:focus {
+        outline: none;
+        border-color: var(--chalk);
+        box-shadow: 0 0 0 3px rgba(47, 74, 60, 0.12);
+      }
+
+      option.placeholder {
+        color: var(--ink-soft);
+      }
+
+      .submit-row {
+        margin-top: 28px;
+        display: flex;
+        justify-content: center;
+      }
+
+      input.btn {
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 600;
+        font-size: 15px;
+        letter-spacing: 0.01em;
+        color: var(--card);
+        background: var(--chalk);
+        border: none;
+        border-radius: 999px;
+        padding: 14px 38px;
+        cursor: pointer;
+        transition:
+          background 0.15s ease,
+          transform 0.1s ease;
+      }
+      input.btn:hover {
+        background: var(--chalk-deep);
+      }
+      input.btn:active {
+        transform: translateY(1px);
+      }
+
+      /* --- result / graded section --- */
+      .result {
+        margin: 0 44px 40px;
+        padding: 26px 30px;
+        border: 2px solid var(--paper-line);
+        border-radius: 6px;
+        background:
+          repeating-linear-gradient(
+            to bottom,
+            transparent 0,
+            transparent 37px,
+            var(--paper-line) 38px
+          ),
+          #fffdf8;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        position: relative;
+      }
+
+      .result .badge {
+        flex: 0 0 auto;
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        border: 3px solid var(--red-pen);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: rotate(-6deg);
+        font-family: "Caveat", cursive;
+        font-weight: 700;
+        font-size: 32px;
+        color: var(--red-pen);
+        line-height: 1;
+      }
+
+      .result .copy .label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        margin: 0 0 4px;
+      }
+
+      .result .copy .value {
+        font-family: "Fraunces", serif;
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--ink);
+        margin: 0;
+      }
+
+      .result .stamp {
+        margin-left: auto;
+        font-family: "Caveat", cursive;
+        font-size: 22px;
+        color: var(--pencil);
+        transform: rotate(4deg);
+        border: 2px dashed var(--pencil);
+        border-radius: 6px;
+        padding: 6px 14px;
+        flex: 0 0 auto;
+        white-space: nowrap;
+      }
+
+      @media (max-width: 600px) {
+        .masthead {
+          padding: 30px 24px 22px;
+        }
+        form {
+          padding: 24px 24px 32px;
+        }
+        .result {
+          margin: 0 24px 32px;
+          flex-wrap: wrap;
+        }
+        .pair {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+        .field {
+          grid-template-columns: 28px 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="sheet">
+      <div class="masthead">
+        <p class="eyebrow">Predictive Assessment &mdash; Math Score</p>
+        <h1>Student Exam Performance Indicator</h1>
+        <p>
+          Answer a few questions about the student's background, and the model
+          will estimate their math score out of 100.
+        </p>
+      </div>
+
+      <form action="{{ url_for('predict_datapoint')}}" method="post">
+        <div class="field">
+          <span class="qnum">1</span>
+          <div>
             <label class="form-label">Gender</label>
-            <select class="form-control" name="gender" placeholder="Enter you Gender" required>
-                <option class="placeholder" selected disabled value="">Select your Gender</option>
-                <option value="male">
-                    Male
-                </option>
-                <option value="female">
-                    Female
-                </option>
+            <select class="form-control" name="gender" required>
+              <option class="placeholder" selected disabled value="">
+                Select your gender
+              </option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
             </select>
+          </div>
         </div>
-        <div class="mb-3">
+
+        <div class="field">
+          <span class="qnum">2</span>
+          <div>
             <label class="form-label">Race or Ethnicity</label>
-            <select class="form-control" name="ethnicity" placeholder="Enter you ethnicity" required>
-                <option class="placeholder" selected disabled value="">Select Ethnicity</option>
-                <option value="group A">
-                    Group A
-                </option>
-                <option value="group B">
-                    Group B
-                </option>
-                <option value="group C">
-                    Group C
-                </option>
-                <option value="group D">
-                    Group D
-                </option>
-                <option value="group E">
-                    Group E
-                </option>
+            <select class="form-control" name="ethnicity" required>
+              <option class="placeholder" selected disabled value="">
+                Select ethnicity group
+              </option>
+              <option value="group A">Group A</option>
+              <option value="group B">Group B</option>
+              <option value="group C">Group C</option>
+              <option value="group D">Group D</option>
+              <option value="group E">Group E</option>
             </select>
+          </div>
         </div>
-        <div class="mb-3">
+
+        <div class="field">
+          <span class="qnum">3</span>
+          <div>
             <label class="form-label">Parental Level of Education</label>
-            <select class="form-control" name="parental_level_of_education"
-                placeholder="Enter you Parent Education" required>
-                <option class="placeholder" selected disabled value="">Select Parent Education</option>
-                <option value="associate's degree">
-                    associate's degree
-                </option>
-                <option value="bachelor's degree">
-                    bachelor's degree
-                </option>
-                <option value="high school">
-                    high school
-                </option>
-                <option value="master's degree">
-                    master's degree
-                </option>
-                <option value="some college">
-                    some college
-                </option>
-                <option value="some high school">
-                    some high school
-                </option>
+            <select
+              class="form-control"
+              name="parental_level_of_education"
+              required
+            >
+              <option class="placeholder" selected disabled value="">
+                Select parental education
+              </option>
+              <option value="associate's degree">Associate's degree</option>
+              <option value="bachelor's degree">Bachelor's degree</option>
+              <option value="high school">High school</option>
+              <option value="master's degree">Master's degree</option>
+              <option value="some college">Some college</option>
+              <option value="some high school">Some high school</option>
             </select>
+          </div>
         </div>
-        <div class="mb-3">
+
+        <div class="field">
+          <span class="qnum">4</span>
+          <div>
             <label class="form-label">Lunch Type</label>
-            <select class="form-control" name="lunch" placeholder="Enter you Lunch" required>
-                <option class="placeholder" selected disabled value="">Select Lunch Type</option>
-                <option value="free/reduced">
-                    free/reduced
-                </option>
-                <option value="standard">
-                    standard
-                </option>
+            <select class="form-control" name="lunch" required>
+              <option class="placeholder" selected disabled value="">
+                Select lunch type
+              </option>
+              <option value="free/reduced">Free / reduced</option>
+              <option value="standard">Standard</option>
             </select>
+          </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Test preparation Course</label>
-            <select class="form-control" name="test_preparation_course" placeholder="Enter you Course"
-                required>
-                <option class="placeholder" selected disabled value="">Select Test_course</option>
-                <option value="none">
-                    None
-                </option>
-                <option value="completed">
-                    Completed
-                </option>
+
+        <div class="field">
+          <span class="qnum">5</span>
+          <div>
+            <label class="form-label">Test Preparation Course</label>
+            <select
+              class="form-control"
+              name="test_preparation_course"
+              required
+            >
+              <option class="placeholder" selected disabled value="">
+                Select course status
+              </option>
+              <option value="none">None</option>
+              <option value="completed">Completed</option>
             </select>
+          </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Writing Score out of 100</label>
-            <input class="form-control" type="number" name="reading_score"
-                placeholder="Enter your Reading score" min='0' max='100' />
+
+        <div class="field">
+          <span class="qnum">6</span>
+          <div class="pair">
+            <div>
+              <label class="form-label">Reading Score (out of 100)</label>
+              <input
+                class="form-control"
+                type="number"
+                name="reading_score"
+                placeholder="e.g. 72"
+                min="0"
+                max="100"
+              />
+            </div>
+            <div>
+              <label class="form-label">Writing Score (out of 100)</label>
+              <input
+                class="form-control"
+                type="number"
+                name="writing_score"
+                placeholder="e.g. 68"
+                min="0"
+                max="100"
+              />
+            </div>
+          </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Reading Score out of 100</label>
-            <input class="form-control" type="number" name="writing_score"
-                placeholder="Enter your Reading Score" min='0' max='100' />
+
+        <div class="submit-row">
+          <input class="btn" type="submit" value="Predict math score" />
         </div>
-        <div class="mb-3">
-            <input class="btn btn-primary" type="submit" value="Predict your Maths Score" required />
+      </form>
+
+      {% if results %}
+      <div class="result">
+        <div class="badge">{{ results }}</div>
+        <div class="copy">
+          <p class="label">Predicted Math Score</p>
+          <p class="value">{{ results }} / 100</p>
         </div>
-    </form>
-    <h2>
-       THE  prediction is {{results}}
-    </h2>
-   <body>
+        <div class="stamp">graded by model ✓</div>
+      </div>
+      {% endif %}
+    </main>
+  </body>
 </html>
